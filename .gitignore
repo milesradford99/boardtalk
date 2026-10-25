@@ -1,0 +1,4 @@
+spikes/s0/data/
+spikes/s0/.venv/
+__pycache__/
+.env
