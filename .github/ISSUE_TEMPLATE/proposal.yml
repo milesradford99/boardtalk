@@ -1,0 +1,21 @@
+name: Proposal
+description: Propose a feature or design change (please check the non-goals first)
+labels: [proposal]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Proposed change
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: I checked the non-goals in docs/design/brief.md
+          required: true
