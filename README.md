@@ -59,13 +59,16 @@ The acceptance check is in [docs/design/brief.md](docs/design/brief.md#v01-accep
 ## Documents
 
 - Product brief: [docs/design/brief.md](docs/design/brief.md)
+- Board UI: [docs/design/board-ui.md](docs/design/board-ui.md), with a live prototype in
+  [docs/design/prototypes/board.html](docs/design/prototypes/board.html)
 - Decisions: [docs/adr/](docs/adr/)
 - Research and experiments: [docs/research/](docs/research/), [docs/spikes/](docs/spikes/)
 
 ## Support
 
-Best effort, no SLA. Questions and ideas go in GitHub Discussions once the repository is public;
-bugs go in issues. Security reports: see [SECURITY.md](SECURITY.md).
+Best effort, no SLA. Questions, ideas and bugs go in
+[issues](https://github.com/milesradford99/boardtalk/issues). Security reports: see
+[SECURITY.md](SECURITY.md).
 
 ## License
 

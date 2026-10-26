@@ -27,8 +27,6 @@ See [AGENTS.md](AGENTS.md) for conventions. The two that matter most:
 
 ## AI-assisted contributions
 
-> **Draft policy, pending maintainer approval.**
-
 AI-assisted contributions are welcome. You are the author, so you must:
 - understand and be able to explain every line you submit;
 - have run the tests yourself;

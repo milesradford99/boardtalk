@@ -3,6 +3,14 @@
   "private": true,
   "description": "boardtalk: a live, append-only canvas of what an AI agent did, kept as a durable artifact.",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/milesradford99/boardtalk.git"
+  },
+  "homepage": "https://github.com/milesradford99/boardtalk#readme",
+  "bugs": {
+    "url": "https://github.com/milesradford99/boardtalk/issues"
+  },
   "type": "module",
   "workspaces": [
     "packages/*"

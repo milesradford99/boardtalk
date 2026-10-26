@@ -4,6 +4,15 @@
   "private": true,
   "description": "boardtalk's board model: append-only events, card serialization, verbatim verification. No agent-specific code.",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/milesradford99/boardtalk.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/milesradford99/boardtalk#readme",
+  "bugs": {
+    "url": "https://github.com/milesradford99/boardtalk/issues"
+  },
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
