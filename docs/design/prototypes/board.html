@@ -3,19 +3,17 @@
 <title>Boardtalk Live Board</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 /* Layout: full-window board (dotted plane, ink without boxes) with a transcript panel on the right.
-   build.py inlines the font for the self-contained Artifact copy.
    Deliberately one light look, like the board it follows. Values from docs/design/board-ui.md. */
-@font-face { font-family: "Virgil"; src: url("fonts/Virgil-Regular.woff2") format("woff2"); font-display: block; }
 :root {
   color-scheme: light;
   --plane: #FCFCFC; --dot: #D4D4D4; --ink: #262626; --title: #6741D9; --marker: rgba(254, 243, 199, .78);
   --hl: rgba(254, 243, 199, .62); --red: #C2410C; --pencil: #A3A3A3;
   --chrome: #FFFFFF; --chrome-line: #ECECEC; --ui: #1F1F1F; --ui-muted: #9A9A9A; --ui-soft: #525252; --bubble: #EEF1F8;
   --ptr-fill: #FDE68A; --ptr-stroke: #B45309;
-  --f-hand: "Virgil", "Segoe Print", "Comic Sans MS", cursive;
+  --f-board: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --f-ui: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 html, body { height: 100%; }
@@ -72,11 +70,11 @@ button:focus-visible, select:focus-visible { outline: 2px solid var(--title); ou
 @keyframes blink { 50% { opacity: 0; } }
 
 /* ---- ink on the plane ---- */
-.card { position: absolute; width: 360px; padding: 0 10px 3px; font: 16px/1.5 var(--f-hand); color: var(--ink); }
+.card { position: absolute; width: 380px; padding: 0 10px 3px; font: 14px/1.6 var(--f-board); color: var(--ink); }
 .card .head { position: relative; text-align: center; margin-bottom: 2px; }
 .card .no { position: absolute; left: 0; top: 5px; font: 12px/1 var(--f-ui); color: var(--pencil); letter-spacing: .02em; }
 .card .title {
-  display: inline; padding: 0 2px; font-size: 19.6px; line-height: 1.4; color: var(--title); border-radius: 2px;
+  display: inline; padding: 0 2px; font-size: 16px; font-weight: 600; line-height: 1.45; color: var(--title); border-radius: 2px;
   background: linear-gradient(transparent 55%, var(--marker) 55%) no-repeat; background-size: 0% 100%;
   -webkit-box-decoration-break: clone; box-decoration-break: clone;
 }
@@ -88,22 +86,21 @@ button:focus-visible, select:focus-visible { outline: 2px solid var(--title); ou
 .card .body p { margin: .2em 0; overflow-wrap: anywhere; }
 .card .body ul { margin: 0; padding-left: 1.25em; }
 .card .body li { margin: .25em 0; overflow-wrap: anywhere; }
-.card .body strong { font-weight: 400; text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+.card .body strong { font-weight: 600; }
 .card code { font: inherit; background: rgba(0,0,0,.055); border-radius: 4px; padding: 0 .25em; }
 .card code.unv { background: none; text-decoration: underline dotted var(--red); text-underline-offset: 4px; }
 .card .unv-tag { font: 11px var(--f-ui); color: var(--red); margin-left: 4px; letter-spacing: .03em; }
 .card svg.ann { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .card svg.ann.under { z-index: 0; }
 .card svg.ann.over { z-index: 2; }
-.card .note { position: absolute; font: 15px var(--f-hand); color: var(--red); white-space: nowrap; transform: rotate(-3deg); }
+.card .note { position: absolute; font: 600 13px var(--f-board); color: var(--red); white-space: nowrap; }
 .card.replaced .head, .card.replaced .body { opacity: .55; }
 .card.writing code:not(.lit) { background: none; }
 .card.writing li:not(.lit)::marker { color: transparent; }
-.card.writing strong:not(.lit) { text-decoration-color: transparent; }
 .c { opacity: 0; }
 .c.on { animation: dissolve .36s ease both; }
 @keyframes dissolve { from { opacity: 0; filter: blur(3px); } to { opacity: 1; filter: none; } }
-.pending { position: absolute; width: 360px; padding: 4px 10px; font: 16px/1.5 var(--f-hand); color: var(--pencil); transition: opacity .25s ease; }
+.pending { position: absolute; width: 380px; padding: 4px 10px; font: 13px/1.6 var(--f-board); color: var(--pencil); transition: opacity .25s ease; }
 .pending .lbl { overflow-wrap: anywhere; }
 .pending .t { font: 12px var(--f-ui); color: var(--pencil); font-variant-numeric: tabular-nums; margin-left: 6px; }
 .pending .scan { display: block; height: 2px; margin-top: 4px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--pencil), transparent) no-repeat; background-size: 40% 100%; animation: scan 1.3s linear infinite; opacity: .6; }
@@ -246,7 +243,7 @@ button:focus-visible, select:focus-visible { outline: 2px solid var(--title); ou
   ];
 
   // ---------- geometry ----------
-  const COL_W = 360, GUTTER = 25, X0 = 36, Y0 = 70, COL_MAX = 600, GAP = 16, CAPTION_ROOM = 120;
+  const COL_W = 380, GUTTER = 25, X0 = 36, Y0 = 70, COL_MAX = 600, GAP = 16, CAPTION_ROOM = 120;
   const colX = (i) => X0 + i * (COL_W + GUTTER);
 
   const $ = (s) => document.querySelector(s);
@@ -500,7 +497,7 @@ button:focus-visible, select:focus-visible { outline: 2px solid var(--title); ou
     const x0 = Math.min(...rects.map((r) => r.x)), x1 = Math.max(...rects.map((r) => r.x + r.w)), y0 = Math.min(...rects.map((r) => r.y)), y1 = Math.max(...rects.map((r) => r.y + r.h));
     await pointAt(S, card.el, { x: x1 - x0 > 0 ? x0 : x0, y: y0, w: x1 - x0, h: y1 - y0 });
     const e = document.createElementNS(NS, "ellipse");
-    const rx = (x1 - x0) / 2 + 12, ry = (y1 - y0) / 2 + 5, len = Math.PI * (3 * (rx + ry) - Math.sqrt((3 * rx + ry) * (rx + 3 * ry)));
+    const rx = (x1 - x0) / 2 + 18, ry = (y1 - y0) / 2 + 7, len = Math.PI * (3 * (rx + ry) - Math.sqrt((3 * rx + ry) * (rx + 3 * ry)));
     e.setAttribute("cx", (x0 + x1) / 2); e.setAttribute("cy", (y0 + y1) / 2); e.setAttribute("rx", rx); e.setAttribute("ry", ry);
     e.setAttribute("fill", "none"); e.setAttribute("stroke", "#C2410C"); e.setAttribute("stroke-width", 2.5); e.setAttribute("stroke-linecap", "round"); e.setAttribute("filter", "url(#rough)");
     e.setAttribute("transform", `rotate(-2 ${(x0 + x1) / 2} ${(y0 + y1) / 2})`);
@@ -644,6 +641,6 @@ button:focus-visible, select:focus-visible { outline: 2px solid var(--title); ou
     requestAnimationFrame(frame);
   }
   const start = () => { cam.s = board.clientWidth < 700 ? .8 : 1; run(true); requestAnimationFrame(frame); };
-  (document.fonts?.load ? document.fonts.load('16px "Virgil"') : Promise.resolve()).finally(start);
+  (document.fonts?.load ? document.fonts.load('14px "JetBrains Mono"') : Promise.resolve()).finally(start);
 })();
 </script>

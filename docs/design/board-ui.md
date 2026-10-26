@@ -9,7 +9,7 @@ inspected through the DOM and computed styles. Values below are measured, not gu
 value is our own choice, it says so.
 
 We follow the interaction and motion grammar. We do not copy Hyperknow's name, logo, chrome icons,
-illustrations or copy. The hand font is Virgil (Excalidraw, OFL-1.1), which Hyperknow also uses.
+illustrations or copy. We also do not use its hand font: the board text is monospace (§4).
 
 ## 1. What Hyperknow's board is
 
@@ -64,7 +64,7 @@ Annotations are anchored to text (`target_board_id` + snippet), never to model-c
 | Lesson | One pi session |
 | Tutor speech, as caption | The agent's assistant text, streamed as the caption |
 | `board` card | Scribe card: title plus markdown body, written in with the same per-character dissolve |
-| `*_pending` slot for slow figures | **Pending line**: the tool call, in grey hand, in a reserved slot the instant the tool starts. The scribe card writes into that slot. |
+| `*_pending` slot for slow figures | **Pending line**: the tool call, in grey, in a reserved slot the instant the tool starts. The scribe card writes into that slot. |
 | Highlight on earlier text | A reference: the new card's evidence is highlighted on the older card it cites, and the pointer taps it |
 | Circle | An error string, or the one key fact in a card |
 | (none) | **Correction**: an orange strike drawn through the replaced card's title, plus a small "→ #6" note. The old card stays on the board (append-only). |
@@ -76,12 +76,14 @@ Annotations are anchored to text (`target_board_id` + snippet), never to model-c
 Our own choices (not from Hyperknow):
 
 - **Card number:** a small grey `#n` before the title, because references and corrections cite cards by number.
-- **Exact strings** (paths, commands, error text) appear as code chips in the hand font. A claimed
+- **Board font:** JetBrains Mono (OFL-1.1, via Google Fonts) instead of a hand font, chosen by the
+  user. Body 14 px / 1.6, titles 16 px semibold, column 380 px wide (about 40 characters a line).
+- **Exact strings** (paths, commands, error text) appear as code chips on a light grey ground. A claimed
   string that is not found in the tool output gets a dotted underline and the word "unverified".
 - **Error titles** use the circle ink `#C2410C`. Every other title stays violet.
 
 ## 5. Open points
 
-- The CJK fallback is Xiaolai, which is under OFL. Add it only if non-Latin sessions need it.
+- CJK text falls back to the system monospace or sans. Pick a CJK face only if non-Latin sessions need one.
 - Reduced motion: text appears at once, and annotations show their final state without drawing.
 - Dark mode: Hyperknow has none on the board. Proposal: a "chalkboard" variant later, not in v0.1.
