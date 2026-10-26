@@ -57,33 +57,57 @@ Annotations are anchored to text (`target_board_id` + snippet), never to model-c
   `rgba(250,250,250,.82)` halo with a 2 px blur.
 - **Input bar:** "Ask a question…", microphone, pause, stop.
 
-## 4. Mapping an agent session onto it
+## 4. What the board shows: an append-only lecture of the design
 
-| Hyperknow | boardtalk |
-|---|---|
-| Lesson | One pi session |
-| Tutor speech, as caption | The agent's assistant text, streamed as the caption |
-| `board` card | Scribe card: title plus markdown body, written in with the same per-character dissolve |
-| `*_pending` slot for slow figures | **Pending line**: the tool call, in grey, in a reserved slot the instant the tool starts. The scribe card writes into that slot. |
-| Highlight on earlier text | A reference: the new card's evidence is highlighted on the older card it cites, and the pointer taps it |
-| Circle | An error string, or the one key fact in a card |
-| (none) | **Correction**: an orange strike drawn through the replaced card's title, plus a small "→ #6" note. The old card stays on the board (append-only). |
-| New page | A fold: page 2 opens with a handoff card summarising page 1; `‹ 1/2 ›` leads back |
-| Chat history markers | Transcript with markers for cards, tool calls (with a spinner while running), circles, highlights and page turns. Click a marker to fly the camera there. |
-| "Model is explaining" | "Agent is working" while a turn runs |
-| Input bar | Steering the agent: later work. The v0.1 viewer is read-only, so it shows replay controls. |
+Decided by the user, 2026-10-25. The board keeps Hyperknow's lecture format: cards are appended in
+reading order, filling one column top to bottom and then starting the next. Nothing already on the
+board is edited or moved. What changes from a trajectory is the **content**: a card is a formal
+statement about the work, never one card per tool call. The step-by-step trail lives in the
+transcript panel.
+
+**Card types,** each with a small eyebrow naming its source:
+
+| Eyebrow | What it says | Example titles |
+|---|---|---|
+| **Your intent** | What the user asked for, constraints, and steering added mid-session | What you asked for · Constraints · You added a constraint |
+| **Agent's design** | Understanding, decisions with rejected options, the change | Where it breaks · Decision · Change |
+| **Evidence** | Results of checks | First test run · Full test run |
+| **You should know** | What the user might have missed (see below) | [[]] becomes a String · No depth limit |
+| **For you** | Questions the agent needs answered | Open question |
+
+- **Revision is a new card.** "Decision, revised" is appended where the work is now. The old
+  "Decision" card stays in place, struck through in grey, with a link: `revised: see "Decision, revised"`.
+- **"You should know" notes are appended cards too,** placed at the moment the side agent notices
+  something, with a violet rule and eyebrow, a short label ("Tradeoff", "Limit"), and two choices:
+  **Knew this** and **Dismiss**. Modelled on Claude Code's "You should know" mod: a side agent with no
+  tools rereads the session and surfaces a tradeoff chosen without calling it out, a limit, or a result
+  that may be off. boardtalk's scribe already is such a side agent, so the notes come from the same
+  call. Answering a note changes only how it looks; the card stays.
+- **Low-level work** (each tool call) shows only as one quiet activity line above the caption
+  ("pytest -q · 2.1 s"), and as a marker in the transcript.
+- **Links back to intent:** when the agent's work meets a constraint or done-when item, that text is
+  highlighted on the earlier intent card and the pointer taps it. A highlight is a decoration over an
+  existing card, not an edit of it.
+- **Box:** a precise rounded rectangle, violet `#6741D9`, 1.5 px, radius 5, drawn as one stroke in
+  0.9 s, around the one key fact in a card. Replaces Hyperknow's rough circle at the user's request.
+- **Static view:** the same log replayed without animation (`board.html#final`).
 
 Our own choices (not from Hyperknow):
 
-- **Card number:** a small grey `#n` before the title, because references and corrections cite cards by number.
 - **Board font:** JetBrains Mono (OFL-1.1, via Google Fonts) instead of a hand font, chosen by the
-  user. Body 14 px / 1.6, titles 16 px semibold, column 380 px wide (about 40 characters a line).
-- **Exact strings** (paths, commands, error text) appear as code chips on a light grey ground. A claimed
-  string that is not found in the tool output gets a dotted underline and the word "unverified".
-- **Error titles** use the circle ink `#C2410C`. Every other title stays violet.
+  user. Body 14 px / 1.6, titles 16 px semibold, columns 380 px wide.
+- **Exact strings** (paths, commands, error text) appear as code chips on a light grey ground.
+- **Quiet text** (eyebrows, struck-through cards) uses `#737373`, which passes WCAG AA on the plane
+  (4.6:1).
 
 ## 5. Open points
 
 - CJK text falls back to the system monospace or sans. Pick a CJK face only if non-Latin sessions need one.
 - Reduced motion: text appears at once, and annotations show their final state without drawing.
 - Dark mode: Hyperknow has none on the board. Proposal: a "chalkboard" variant later, not in v0.1.
+- **Relation to ADR 0001.** The compaction spikes used one scribe card per turn. The board now holds
+  fewer, design-level cards. Whether these cards are enough as model context, or per-turn notes must
+  stay in the log alongside them, needs an ADR update and a spike before the viewer is built.
+- **Event model.** Core events need an eyebrow kind (intent, design, evidence, heads-up, question),
+  marks (box, highlight on a snippet) and the heads-up label. Corrections already use `supersedes`.
+  That is a public API change, to be proposed separately.
