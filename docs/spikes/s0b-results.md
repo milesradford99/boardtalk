@@ -60,5 +60,5 @@ For reference (S0, uncompressed): raw transcript 96.5%; full boards 95–97% at 
 
 The value case holds at equal token budget. A board with second-level folding beat recursive
 summaries by 15–20 points at ~2k tokens, and by ~20 points at 4–5k. The remaining unknown is
-**task success** in a live agent loop (S1), plus Claude-specific behavior (preserved thinking,
+**task success** in a live agent loop (S2), plus Claude-specific behavior (preserved thinking,
 caching prices).

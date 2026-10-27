@@ -143,14 +143,14 @@ If 1 or 3 fails, fall back to the view-only board. The UI work is the same eithe
   run the scribe over them to build boards. Generate 20 hindsight questions per transcript about
   early details, and answer them from (a) the board and (b) a rewritten summary. This measures F5
   before any loop exists. It needs a transcript source the user picks.
-- **S1, minimal loop, about 10 tasks × 3 arms** (board / simple-compaction summary / server
+- **S2 (was S1), minimal loop, about 10 tasks × 3 arms** (board / simple-compaction summary / server
   compaction), with a forced low compaction threshold so folds actually happen. Log task success,
   `usage.cache_read_input_tokens`, `cache_creation_input_tokens` and `input_transformations`. This
   spends API money, so it needs a budget the user sets first.
-- **Out of the spike:** the UI, the second-level fold and keep-tail. They wait until S1 passes.
+- **Out of the spike:** the UI, the second-level fold and keep-tail. They wait until S2 passes.
 
 Self-review only. No fresh-context critic was run on this ADR. The assumptions most likely to be
-wrong: (1) the size of the cache saving on real traces (measure it in S1); (2) whether a
+wrong: (1) the size of the cache saving on real traces (measure it in S2); (2) whether a
 Haiku-class scribe keeps enough exact detail (S0).
 
 ## Spike results
@@ -174,7 +174,23 @@ Haiku-class scribe keeps enough exact detail (S0).
 - **Larger allowances:** at 4–5k the board reaches 86–89%, while the summary stays at ~67%
   because it doesn't use the extra room.
 - **Verdict:** structure, not size, drives the gap, so the cost case above stands. Still open:
-  task success in a live loop (S1) and Claude-specific behavior.
+  task success in a live loop (S2) and Claude-specific behavior.
+
+**S1 (2026-10-27, lecture board; see `docs/spikes/s1-results.md`):**
+- **Memory:** design-level lecture cards (~2.7k tokens) recall 58.8 %, the same as the summary and
+  38 points below the per-turn board (97.2 %). The per-turn notes therefore stay the model's
+  context (with S0b's digest at folds), and the lecture board is a view for the human.
+- **View quality:** 1.1 % step narration, 93 % precise "You should know" notes, but claim support
+  (61 %), verbatim (3.8 % missing) and intent coverage (65 %) miss their bars. Next: a two-stage
+  scribe that writes lecture cards from the per-turn notes.
+
+**S1b (2026-10-27, two-stage; see `docs/spikes/s1b-results.md`):**
+- Writing lecture cards from the per-turn notes, citing note ids, raises claim support from 61 % to
+  84 % with 0 % unsupported, and cuts the cards by a third. Every remaining verbatim miss comes
+  from the notes themselves.
+- **Decision proposed:** two stages. Per-turn notes are the memory and the lecture's source; the
+  lecture is the human's view. Before S2: check note strings against the turn at note time, retry a
+  rejected lecture card once, and write intent in one dedicated call.
 
 ## How to reverse
 

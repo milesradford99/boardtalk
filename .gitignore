@@ -9,3 +9,4 @@ spikes/s0/.venv/
 # Claude Code local settings stay local
 .claude/
 CLAUDE.local.md
+spikes/s1/data/
