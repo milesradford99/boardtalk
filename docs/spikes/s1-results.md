@@ -69,7 +69,7 @@ Tokens: 7.9M of the 15M cap (scribe 5.1M including two smoke runs, judging 1.9M,
 
 ## Human review
 
-Open. The gallery picks (seed 20261026): falconry/falcon (resolved), MycroftAI/lingua-franca
+Open, now combined with S1b's review (`s1b-results.md`). The gallery picks (seed 20261026): falconry/falcon (resolved), MycroftAI/lingua-franca
 (resolved, 52 cards), tobymao/sqlglot (unresolved). The question for each: "Would you keep this as
 the record of the session?" Pass needs 2 of 3 answered "yes" or "with fixes".
 

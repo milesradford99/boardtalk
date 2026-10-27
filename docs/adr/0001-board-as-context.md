@@ -184,6 +184,14 @@ Haiku-class scribe keeps enough exact detail (S0).
   (61 %), verbatim (3.8 % missing) and intent coverage (65 %) miss their bars. Next: a two-stage
   scribe that writes lecture cards from the per-turn notes.
 
+**S1b (2026-10-27, two-stage; see `docs/spikes/s1b-results.md`):**
+- Writing lecture cards from the per-turn notes, citing note ids, raises claim support from 61 % to
+  84 % with 0 % unsupported, and cuts the cards by a third. Every remaining verbatim miss comes
+  from the notes themselves.
+- **Decision proposed:** two stages. Per-turn notes are the memory and the lecture's source; the
+  lecture is the human's view. Before S2: check note strings against the turn at note time, retry a
+  rejected lecture card once, and write intent in one dedicated call.
+
 ## How to reverse
 
 The board writer and the context projector are separate modules. Turning the projector off leaves a

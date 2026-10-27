@@ -73,34 +73,53 @@ details ol { margin-top: 10px; gap: 4px; }
 """
 
 
+def counts(lec: dict) -> dict:
+    return {k: sum(1 for x in lec["cards"] if x["kind"] == k) for k in b.KINDS}
+
+
+def supported(tid: str, sx: str) -> str:
+    jc = load(tid, f"judge_cards{sx}.json")
+    return f"{sum(g['support'] == 'supported' for g in jc['grades'].values())}/{len(jc['grades'])}" if jc else "–"
+
+
 def main() -> None:
     ids = c.all_ids()
     picks = review_ids(ids)
+    two = all((b.OUT / t / "lecture2.json").exists() for t in ids)
     gdir = b.OUT / "gallery"
-    (gdir / "boards").mkdir(parents=True, exist_ok=True)
+    for d in ("boards", "boards2"):
+        (gdir / d).mkdir(parents=True, exist_ok=True)
     rows, reqs = [], []
     for tid in ids:
-        traj, lec = c.load(tid), b.lecture(tid)
+        traj, lec = c.load(tid), b.lecture(tid, "lecture")
         shutil.copy(b.OUT / "boards" / f"{tid}.html", gdir / "boards" / f"{tid}.html")
-        kinds = {k: sum(1 for x in lec["cards"] if x["kind"] == k) for k in b.KINDS}
-        jc = load(tid, "judge_cards.json")
-        sup = (f"{sum(g['support'] == 'supported' for g in jc['grades'].values())}/{len(jc['grades'])}"
-               if jc else "–")
+        k1 = counts(lec)
         state = '<span class="tag">resolved</span>' if traj["resolved"] else '<span class="tag no">unresolved</span>'
-        rows.append(f"<tr><td><a href=\"boards/{tid}.html\">{html.escape(traj['repo'])}</a></td><td>{state}</td>"
-                    f"<td class=\"n\">{len(traj['turns'])}</td><td class=\"n\">{len(lec['cards'])}</td>"
-                    f"<td class=\"n\">{kinds['intent']}/{kinds['design']}/{kinds['evidence']}/{kinds['question']}</td>"
-                    f"<td class=\"n\">{kinds['heads_up']}</td><td class=\"n\">{len(lec['marks'])}</td>"
-                    f"<td class=\"n\">{sup}</td></tr>")
-        it = load(tid, "intent.json")
-        if it:
-            items = "".join(f"<li>{html.escape(r['text'])} <span class=\"cov\">· on the board: {r['covered']}</span></li>"
-                            for r in it["requirements"])
+        s1 = (f"<a href=\"boards/{tid}.html\">S1</a> · {len(lec['cards'])} cards, {k1['heads_up']} notes, "
+              f"{supported(tid, '')} supported")
+        s2 = "–"
+        if two:
+            shutil.copy(b.OUT / "boards_2" / f"{tid}.html", gdir / "boards2" / f"{tid}.html")
+            lec2 = b.lecture(tid, "lecture2")
+            s2 = (f"<a href=\"boards2/{tid}.html\">S1b</a> · {len(lec2['cards'])} cards, "
+                  f"{counts(lec2)['heads_up']} notes, {supported(tid, '_2')} supported")
+        rows.append(f"<tr><td>{html.escape(traj['repo'])}</td><td>{state}</td><td class=\"n\">{len(traj['turns'])}</td>"
+                    f"<td>{s1}</td><td>{s2}</td></tr>")
+        rq = load(tid, "requirements.json")
+        if rq:
+            cov1 = {r["n"]: r["covered"] for r in (load(tid, "coverage.json") or {"requirements": []})["requirements"]}
+            cov2 = {r["n"]: r["covered"] for r in (load(tid, "coverage_2.json") or {"requirements": []})["requirements"]}
+            items = "".join(f"<li>{html.escape(r)} <span class=\"cov\">· S1: {cov1.get(n, '–')} · S1b: {cov2.get(n, '–')}</span></li>"
+                            for n, r in enumerate(rq["requirements"]))
             reqs.append(f"<details><summary>{html.escape(traj['repo'])}</summary><ol start=\"0\">{items}</ol></details>")
-    review = "".join(
-        f"<li><a href=\"boards/{t}.html\">{html.escape(c.load(t)['repo'])}</a> "
-        f"<span class=\"quiet\">({'resolved' if c.load(t)['resolved'] else 'unresolved'}, "
-        f"{len(c.load(t)['turns'])} turns)</span></li>" for t in picks)
+
+    def links(t):
+        r = c.load(t)
+        both = (f'<a href="boards/{t}.html">S1 board</a>' +
+                (f' · <a href="boards2/{t}.html">S1b board</a>' if two else ""))
+        return (f"<li><strong>{html.escape(r['repo'])}</strong> <span class=\"quiet\">({'resolved' if r['resolved'] else 'unresolved'}, "
+                f"{len(r['turns'])} turns)</span><br>{both}</li>")
+    review = "".join(links(t) for t in picks)
     page = f"""<title>S1 Lecture Boards</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -109,21 +128,21 @@ def main() -> None:
 <main>
   <section class="lede">
     <h1><span>S1 lecture boards</span></h1>
-    <p>Ten real agent sessions from SWE-rebench (OpenHands, CC-BY-4.0), each drawn by a
-    <code>deepseek-v4.1-flash</code> scribe that saw one turn at a time. Each board replays the session;
-    add <code>#final</code> to a board's address for the finished board without animation.</p>
+    <p>Ten real agent sessions from SWE-rebench (OpenHands, CC-BY-4.0), each drawn twice by
+    <code>deepseek-v4.1-flash</code>. <strong>S1</strong>: the scribe read the raw session one turn at a time.
+    <strong>S1b</strong>: the writer read the per-turn notes every five turns and cites them.
+    Add <code>#final</code> to a board's address for the finished board without animation.</p>
   </section>
   <section class="review">
-    <h2>Your review: three boards</h2>
-    <p>For each board, one question: <strong>would you keep this as the record of the session?</strong>
-    Answer yes, with fixes, or no, plus one line on why.</p>
+    <h2>Your review: three sessions, two boards each</h2>
+    <p>For each board: <strong>would you keep this as the record of the session?</strong>
+    Yes, with fixes, or no, plus one line on why. Then: which of the two do you prefer?</p>
     <ol>{review}</ol>
   </section>
   <section>
     <h2>All sessions</h2>
     <div class="scroll"><table>
-      <thead><tr><th>Session</th><th>Outcome</th><th>Turns</th><th>Cards</th><th>Intent/design/evid./question</th>
-      <th>You should know</th><th>Marks</th><th>Supported</th></tr></thead>
+      <thead><tr><th>Session</th><th>Outcome</th><th>Turns</th><th>S1 (raw turns)</th><th>S1b (from notes)</th></tr></thead>
       <tbody>{''.join(rows)}</tbody>
     </table></div>
   </section>

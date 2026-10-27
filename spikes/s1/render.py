@@ -47,12 +47,12 @@ def steps(traj: dict, lec: dict) -> list[dict]:
     marks_at = {}
     for m in lec["marks"]:
         marks_at.setdefault(m["turn"], []).append(m)
-    by_idx = {t["idx"]: t for t in traj["turns"]}
+    per_turn = {p["turn"]: p for p in lec["per_turn"]}
     out, pending = [{"user": request_text(traj["task"])}], []
-    for p in lec["per_turn"]:
-        t = by_idx[p["turn"]]
+    for t in traj["turns"]:   # S1b writes every few turns, so tool calls collect across all turns
         pending += [tool_label(x) for x in t["calls"]]
-        if not p["cards"] and p["turn"] not in marks_at:
+        p = per_turn.get(t["idx"])
+        if not p or (not p["cards"] and p["turn"] not in marks_at):
             continue
         shown = pending[-MAX_TOOLS:]
         if len(pending) > MAX_TOOLS:
@@ -92,7 +92,7 @@ def page(traj: dict, lec: dict) -> str:
 
 def main() -> None:
     ids = sys.argv[1:] or c.all_ids()
-    d = b.OUT / "boards"
+    d = b.OUT / f"boards{b.suffix()}"
     d.mkdir(parents=True, exist_ok=True)
     for tid in ids:
         (d / f"{tid}.html").write_text(page(c.load(tid), b.lecture(tid)))

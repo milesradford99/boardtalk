@@ -1,7 +1,6 @@
 # Spike S1b: lecture cards written from per-turn notes
 
-Status: **plan, awaiting approval** (2026-10-27). Timebox: 1 day. Nothing runs until the user
-approves this plan.
+Status: **run** (approved and run 2026-10-27). Results: `s1b-results.md`.
 
 ## Question
 

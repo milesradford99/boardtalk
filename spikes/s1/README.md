@@ -16,6 +16,9 @@ python3 gallery.py            # index page for review
 python3 check.py              # writes report.md
 ```
 
+S1b (two-stage, writes from S0's per-turn notes): set `S1_BOARD=lecture2` and run `lecture2.py`, then
+`judge.py`, `render.py` and `check.py` (writes `report_2.md`); `gallery.py` shows both boards.
+
 Run the real steps with `env -u ANTHROPIC_BASE_URL`. The key stays in `../s0/.env`.
 
 Dry run, free: `S0_FAKE=1 S1_OUT=data/dry <step>`.

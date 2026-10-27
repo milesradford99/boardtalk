@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import base as b
 from base import c
+from lecture2 import notes_of
 
 BATCH = 6
 
@@ -35,7 +36,9 @@ CARD_SCHEMA = {"type": "object", "properties": {"grades": {"type": "array", "ite
 REQ_SYSTEM = """You read a request given to a software agent and list its atomic requirements: each
 separate thing the user asked for or constrained (behaviour to fix or add, constraints such as files
 not to touch, required tests or checks). Skip generic boilerplate about the environment or how to
-work, unless it is a constraint on the result. 2-10 requirements, each one short sentence."""
+work, unless it is a constraint on the result. 2-10 requirements, each one short sentence.
+Use ONLY what the request text says. Do not add requirements from your own knowledge of the project,
+its later history or how the issue was eventually solved."""
 
 REQ_SCHEMA = {"type": "object", "properties": {"requirements": {"type": "array", "items": {"type": "string"}}},
               "required": ["requirements"], "additionalProperties": False}
@@ -86,35 +89,45 @@ def cached(path, fn):
 
 
 def judge_cards(client, ledger, tid, traj, lec) -> dict:
+    notes = {n["id"]: n for n in notes_of(tid)} if b.BOARD != "lecture" else {}
+
     def go():
         grades = {}
         cards = lec["cards"]
         for i in range(0, len(cards), BATCH):
             group = cards[i:i + BATCH]
             src = sorted({s for x in group for s in x["src_turns"]})
-            out = c.call_json(client, ledger, model=b.MODEL, tag=f"judge_cards:{tid}:{i}", system=CARD_SYSTEM,
+            cited = sorted({n for x in group for n in x.get("src_notes", []) if n in notes})
+            note_block = ("## Cited notes\n\n" + "\n\n".join(b.note_text(notes[n]) for n in cited) + "\n\n") if cited else ""
+            out = c.call_json(client, ledger, model=b.MODEL, tag=f"judge_cards{b.suffix()}:{tid}:{i}", system=CARD_SYSTEM,
                               max_tokens=16000, schema=CARD_SCHEMA,
-                              content=["## Cited source\n\n" + b.source_text(traj, src),
+                              content=[note_block + "## Cited source (raw turns)\n\n" + b.source_text(traj, src),
                                        "## Cards\n\n" + "\n\n".join(
-                                           card_text(x) + f"\n(cites {b.turns_label(x['src_turns'])})" for x in group)])
+                                           card_text(x) + f"\n(cites {b.turns_label(x['src_turns'])}"
+                                           + (f"; notes {x['src_notes']})" if "src_notes" in x else ")") for x in group)])
             for g in out["grades"]:
                 grades[str(g["id"])] = g
         return {"grades": grades}
-    return cached(b.OUT / tid / "judge_cards.json", go)
+    return cached(b.OUT / tid / f"judge_cards{b.suffix()}.json", go)
 
 
 def judge_intent(client, ledger, tid, traj, lec) -> dict:
+    """Requirement lists (strict prompt, shared by both boards) and coverage per board. S1's first
+    coverage run, with the looser prompt, stays in intent.json."""
+    rpath = b.OUT / tid / "requirements.json"
+
     def go():
-        reqs = c.call_json(client, ledger, model=b.MODEL, tag=f"requirements:{tid}", system=REQ_SYSTEM,
-                           max_tokens=4000, schema=REQ_SCHEMA, content=[traj["task"]])["requirements"]
+        reqs = cached(rpath, lambda: c.call_json(
+            client, ledger, model=b.MODEL, tag=f"requirements:{tid}", system=REQ_SYSTEM,
+            max_tokens=4000, schema=REQ_SCHEMA, content=[traj["task"]]))["requirements"]
         intent = [x for x in lec["cards"] if x["kind"] == "intent"]
-        cov = c.call_json(client, ledger, model=b.MODEL, tag=f"coverage:{tid}", system=COV_SYSTEM,
+        cov = c.call_json(client, ledger, model=b.MODEL, tag=f"coverage{b.suffix()}:{tid}", system=COV_SYSTEM,
                           max_tokens=4000, schema=COV_SCHEMA,
                           content=["## Intent cards\n\n" + ("\n\n".join(card_text(x) for x in intent) or "(none)"),
                                    "## Requirements\n\n" + "\n".join(f"{n}. {r}" for n, r in enumerate(reqs))])
         got = {g["n"]: g["covered"] for g in cov["coverage"]}
         return {"requirements": [{"n": n, "text": r, "covered": got.get(n, "no")} for n, r in enumerate(reqs)]}
-    return cached(b.OUT / tid / "intent.json", go)
+    return cached(b.OUT / tid / f"coverage{b.suffix()}.json", go)
 
 
 def judge_heads(client, ledger, tid, traj, lec) -> dict:
@@ -122,14 +135,14 @@ def judge_heads(client, ledger, tid, traj, lec) -> dict:
         notes = [x for x in lec["cards"] if x["kind"] == "heads_up"]
         outcome = ("PASSED: the final change passed the hidden tests." if traj["resolved"] else
                    "FAILED: the final change did not pass the hidden tests.")
-        out = c.call_json(client, ledger, model=b.MODEL, tag=f"heads:{tid}", system=HEADS_SYSTEM,
+        out = c.call_json(client, ledger, model=b.MODEL, tag=f"heads{b.suffix()}:{tid}", system=HEADS_SYSTEM,
                           max_tokens=24000, schema=HEADS_SCHEMA,
                           content=[b.task_block(traj), "## Transcript\n\n" + c.render_turns(traj["turns"]),
                                    "## Notes\n\n" + ("\n\n".join(card_text(x) + f"\n(written at turn {x['turn']})"
                                                                  for x in notes) or "(no notes)"),
                                    "## Outcome\n\n" + outcome])
         return {"resolved": traj["resolved"], **out}
-    return cached(b.OUT / tid / "heads.json", go)
+    return cached(b.OUT / tid / f"heads{b.suffix()}.json", go)
 
 
 def run(client, ledger, tid: str) -> None:
