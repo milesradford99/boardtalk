@@ -15,23 +15,23 @@ board should not be the model's memory.
 | 1 | Verbatim not found | 3.8 % (64 / 1,696) | ≤ 2 % | no |
 | 2 | Claim support | 61.0 % supported, 37.9 % partial, 1.1 % unsupported (351 cards) | ≥ 90 %, ≤ 3 % | no |
 | 3 | Intent coverage | 64.5 % yes, 14.5 % partial (62 requirements); 73.6 % / 88.7 % without one bad gold list | ≥ 90 % | no |
-| 4 | "You should know" precision | 92.6 % true and new (25 / 27); median 3 per session | ≥ 70 %, ≤ 3 | yes |
-| 5 | Flags the problem on failed runs | 4 of 4 judged (sqlglot pending); 1 false alarm on 5 resolved runs | ≥ 3 of 5 | yes |
+| 4 | "You should know" precision | 93.3 % true and new (28 / 30); median 3 per session | ≥ 70 %, ≤ 3 | yes |
+| 5 | Flags the problem on failed runs | 5 of 5; 1 false alarm on 5 resolved runs | ≥ 3 of 5 | yes |
 | 6 | Step narration | 1.1 % | ≤ 10 % | yes |
 | 7 | Marks valid / operations dropped | 97.5 % / 1.3 % | ≥ 95 %, ≤ 5 % | yes |
 | 8 | Memory (S0 questions, after the last fold) | lecture 58.8 · per-turn board 97.2 · summary 58.8 | informational | – |
 | 9 | Scribe latency | p50 7.1 s, p95 14.9 s; 80 % of input from cache | p50 ≤ 15 s | yes |
 
-Tokens: 7.8M of the 15M cap (scribe 5.1M including two smoke runs, judging 1.8M, memory test 0.9M).
+Tokens: 7.9M of the 15M cap (scribe 5.1M including two smoke runs, judging 1.9M, memory test 0.9M).
 
 ## Reading
 
 1. **The board reads as a design record.** Only 1.1 % of cards narrate steps. Revisions are used
    (1–18 per session), and the scribe marks key facts with 97.5 % valid anchors.
-2. **"You should know" is the strongest part.** 25 of 27 notes are true and not already said by the
-   agent. On every failed run judged so far, a note named a real reason for the failure: the fix
+2. **"You should know" is the strongest part.** 28 of 30 notes are true and not already said by the
+   agent. On all 5 failed runs, a note named a real reason for the failure: the fix
    checked only with the agent's own script, a reproduction that never ran, a heuristic that
-   mis-aligns region names, a test run against a hand-copied file in `site-packages`. The one false
+   mis-aligns region names, a test run against a hand-copied file in `site-packages`, a "green" run that executed 0 tests. The one false
    alarm (MontePy) predicted an `AttributeError` that the transcript contradicts.
 3. **Claims are mostly right but cite too narrowly.** Only 1.1 % are unsupported. The 38 % "partial"
    are mostly cards that combine the current turn with what the board already knew, or add an
