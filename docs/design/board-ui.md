@@ -105,9 +105,11 @@ Our own choices (not from Hyperknow):
 - CJK text falls back to the system monospace or sans. Pick a CJK face only if non-Latin sessions need one.
 - Reduced motion: text appears at once, and annotations show their final state without drawing.
 - Dark mode: Hyperknow has none on the board. Proposal: a "chalkboard" variant later, not in v0.1.
-- **Relation to ADR 0001.** The compaction spikes used one scribe card per turn. The board now holds
-  fewer, design-level cards. Whether these cards are enough as model context, or per-turn notes must
-  stay in the log alongside them, needs an ADR update and a spike before the viewer is built.
+- **Relation to ADR 0001.** Settled by S1 (`docs/spikes/s1-results.md`): lecture cards are not
+  enough as model context. Per-turn notes stay in the log as the context; the lecture board is drawn
+  from them as the human's view.
+- **Long code chips** overflow the 380 px column (seen on real sessions in S1). They should wrap or
+  scroll inside the card.
 - **Event model.** Core events need an eyebrow kind (intent, design, evidence, heads-up, question),
   marks (box, highlight on a snippet) and the heads-up label. Corrections already use `supersedes`.
   That is a public API change, to be proposed separately.

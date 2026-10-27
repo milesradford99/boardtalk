@@ -68,7 +68,7 @@ reconstructions, for example `IndexError: list index out of range` when the sour
 - n = 10 trajectories from one scaffold (OpenHands, Qwen3-Coder runs) and one domain (Python
   bug-fixing).
 - Questions were written by `kimi-k3` from the full raw transcript. Detail-recall questions
-  naturally favour a detailed record. This measures memory, not task success; S1 measures task
+  naturally favour a detailed record. This measures memory, not task success; S2 measures task
   success.
 - The trajectories contain no hidden reasoning, so the handoff card is a pessimistic stand-in.
 - All writer models are DeepSeek. Scribe conclusions hold for these models; Claude scribes are
