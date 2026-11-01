@@ -5,6 +5,7 @@ Usage: python judge.py [trajectory_id ...]
 Output: data/out/<tid>/judge_cards.json, intent.json, heads.json
 """
 import json
+import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
 
@@ -145,21 +146,40 @@ def judge_heads(client, ledger, tid, traj, lec) -> dict:
     return cached(b.OUT / tid / f"heads{b.suffix()}.json", go)
 
 
-def run(client, ledger, tid: str) -> None:
+def run(client, ledger, tid: str, parts: list[str]) -> None:
     traj, lec = c.load(tid), b.lecture(tid)
-    judge_cards(client, ledger, tid, traj, lec)
-    judge_intent(client, ledger, tid, traj, lec)
-    judge_heads(client, ledger, tid, traj, lec)
+    if "intent" in parts:
+        judge_intent(client, ledger, tid, traj, lec)
+    if "cards" in parts:
+        judge_cards(client, ledger, tid, traj, lec)
+    if "heads" in parts:
+        judge_heads(client, ledger, tid, traj, lec)
     print(f"judged {tid}, tokens so far {ledger.tokens:,}")
 
 
 def main() -> None:
     ids = sys.argv[1:] or c.all_ids()
     client, ledger = c.make_client(), b.ledger()
+    parts = os.environ.get("S1_PARTS", "intent,cards,heads").split(",")
     with ThreadPoolExecutor(max_workers=10) as ex:
-        for f in [ex.submit(run, client, ledger, tid) for tid in ids]:
+        for f in [ex.submit(run, client, ledger, tid, parts) for tid in ids]:
             f.result()
 
 
+def heads_within_cap(client, ledger) -> None:
+    """S1c: You-should-know on failed runs, smallest first, while one more full-transcript call fits the cap."""
+    failed = [c.load(t) for t in c.all_ids() if not c.load(t)["resolved"]]
+    for traj in sorted(failed, key=lambda t: len(c.render_turns(t["turns"]))):
+        need = c.approx_tokens(c.render_turns(traj["turns"]) + traj["task"]) + 12_000
+        if ledger.tokens + need > ledger.cap:
+            print(f"stop before {traj['repo']}: need ~{need:,}, left {ledger.cap - ledger.tokens:,}")
+            return
+        judge_heads(client, ledger, traj["trajectory_id"], traj, b.lecture(traj["trajectory_id"]))
+        print(f"heads {traj['repo']}, tokens so far {ledger.tokens:,}")
+
+
 if __name__ == "__main__":
-    main()
+    if sys.argv[1:] == ["heads-within-cap"]:
+        heads_within_cap(c.make_client(), b.ledger())
+    else:
+        main()

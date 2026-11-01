@@ -13,6 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import base as b
 from base import c
+from grade import _strings
 from scribe import SCHEMA as S1_SCHEMA
 
 WINDOW = 5
@@ -76,16 +77,39 @@ def _swap(schema: dict) -> dict:
 SCHEMA = _swap(S1_SCHEMA)
 
 
+def session_so_far(traj: dict, turn: int) -> str:
+    """What exists up to this turn: the request, rendered turns, decoded call arguments."""
+    seen = [t for t in traj["turns"] if t["idx"] <= turn]
+    args = [s for t in seen for s in _strings([x["args"] for x in t["calls"]])]
+    return c.norm_ws("\n".join([traj["task"], c.render_turns(seen)] + args))
+
+
+def clean_note(n: dict, session: str) -> dict:
+    """S1c fix 1: exact strings not found in the session so far stop being exact strings. The chip
+    goes back to plain text and the `verbatim` item is removed, before the note is stored."""
+    def keep(v: str) -> bool:
+        return c.norm_ws(v) in session
+    parts = n["body_md"].split("`")
+    body = "".join(p if i % 2 == 0 or not keep(p) else f"`{p}`" for i, p in enumerate(parts))
+    return {**n, "body_md": body, "verbatim": [v for v in n["verbatim"] if keep(v)]}
+
+
 def notes_of(tid: str) -> list[dict]:
     bf = json.loads((c.OUT / tid / "board_flash.json").read_text())
-    return [x for batch in bf["batches"] for x in batch if x["kind"] != "handoff"]
+    notes = [x for batch in bf["batches"] for x in batch if x["kind"] != "handoff"]
+    if b.BOARD != "lecture3":
+        return notes
+    traj, sessions = c.load(tid), {}
+    for n in notes:
+        sessions.setdefault(n["src"][0], session_so_far(traj, n["src"][0]))
+    return [clean_note(n, sessions[n["src"][0]]) for n in notes]
 
 
 def chips(md: str) -> list[str]:
     return [s for i, s in enumerate(md.split("`")) if i % 2]
 
 
-def check_card(x: dict, notes: dict, task: str, turn: int) -> str | None:
+def check_card(x: dict, notes: dict, task: str, turn: int, session: str = "") -> str | None:
     """Reason to drop the card, or None. Exact strings must occur in the cited notes or the request."""
     cited = [n for n in x["src_notes"] if n != b.REQUEST]
     if any(n not in notes or notes[n]["src"][0] > turn for n in cited):
@@ -94,10 +118,13 @@ def check_card(x: dict, notes: dict, task: str, turn: int) -> str | None:
         return "no src_notes"
     pool = c.norm_ws("\n".join([b.note_text(notes[n]) for n in cited] + [task]))   # the request is always citable
     bad = [v for v in dict.fromkeys(x["verbatim"] + chips(x["body_md"])) if v.strip() and c.norm_ws(v) not in pool]
+    if session:   # S1c: also in the session itself, since a cleaned note keeps the words as prose
+        bad += [v for v in dict.fromkeys(x["verbatim"] + chips(x["body_md"]))
+                if v.strip() and v not in bad and c.norm_ws(v) not in session]
     return f"exact strings not in cited sources: {bad[:3]}" if bad else None
 
 
-def apply(out: dict, cards: list, marks: list, notes: dict, task: str, turn: int, dropped: list):
+def apply(out: dict, cards: list, marks: list, notes: dict, task: str, turn: int, dropped: list, session: str = ""):
     new_cards, new_marks = [], []
     ids = {x["id"]: x for x in cards}
     revised = {x["revises"] for x in cards if x["revises"] is not None}
@@ -115,7 +142,7 @@ def apply(out: dict, cards: list, marks: list, notes: dict, task: str, turn: int
         elif x["revises"] >= 0 and (x["revises"] not in ids or x["revises"] in revised):
             why = f"revises unknown or already revised #{x['revises']}"
         else:
-            why = check_card(x, notes, task, turn)
+            why = check_card(x, notes, task, turn, session)
         if why:
             drop(x, why)
             continue

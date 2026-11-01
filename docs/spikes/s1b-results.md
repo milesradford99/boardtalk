@@ -54,9 +54,7 @@ Tokens: S1b used 3.1M of its 6M cap, including two smoke runs on falcon. The S1 
 - **Three mechanical fixes before the next measurement:** check note strings against the turn at
   note time; retry a rejected lecture card once with the reason; write intent in one dedicated call.
   None needs a new model or more tokens per turn.
-- **Measure them in the real integration, not another offline spike.** The fixes are code-level
-  checks with obvious effects. The next spike with real value is S2 (the live loop), where the board
-  is built while the agent works.
+- **Done in S1c** (`s1c-results.md`), at the user's request, on the same 10 sessions.
 
 ## Human review
 

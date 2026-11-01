@@ -86,8 +86,9 @@ def main() -> None:
     ids = c.all_ids()
     picks = review_ids(ids)
     two = all((b.OUT / t / "lecture2.json").exists() for t in ids)
+    three = all((b.OUT / t / "lecture3.json").exists() for t in ids)
     gdir = b.OUT / "gallery"
-    for d in ("boards", "boards2"):
+    for d in ("boards", "boards2", "boards3"):
         (gdir / d).mkdir(parents=True, exist_ok=True)
     rows, reqs = [], []
     for tid in ids:
@@ -103,20 +104,28 @@ def main() -> None:
             lec2 = b.lecture(tid, "lecture2")
             s2 = (f"<a href=\"boards2/{tid}.html\">S1b</a> · {len(lec2['cards'])} cards, "
                   f"{counts(lec2)['heads_up']} notes, {supported(tid, '_2')} supported")
+        s3 = "–"
+        if three:
+            shutil.copy(b.OUT / "boards_3" / f"{tid}.html", gdir / "boards3" / f"{tid}.html")
+            lec3 = b.lecture(tid, "lecture3")
+            s3 = (f"<a href=\"boards3/{tid}.html\">S1c</a> · {len(lec3['cards'])} cards, "
+                  f"{counts(lec3)['heads_up']} notes, {supported(tid, '_3')} supported")
         rows.append(f"<tr><td>{html.escape(traj['repo'])}</td><td>{state}</td><td class=\"n\">{len(traj['turns'])}</td>"
-                    f"<td>{s1}</td><td>{s2}</td></tr>")
+                    f"<td>{s1}</td><td>{s2}</td><td>{s3}</td></tr>")
         rq = load(tid, "requirements.json")
         if rq:
             cov1 = {r["n"]: r["covered"] for r in (load(tid, "coverage.json") or {"requirements": []})["requirements"]}
             cov2 = {r["n"]: r["covered"] for r in (load(tid, "coverage_2.json") or {"requirements": []})["requirements"]}
-            items = "".join(f"<li>{html.escape(r)} <span class=\"cov\">· S1: {cov1.get(n, '–')} · S1b: {cov2.get(n, '–')}</span></li>"
+            cov3 = {r["n"]: r["covered"] for r in (load(tid, "coverage_3.json") or {"requirements": []})["requirements"]}
+            items = "".join(f"<li>{html.escape(r)} <span class=\"cov\">· S1: {cov1.get(n, '–')} · S1b: {cov2.get(n, '–')} · S1c: {cov3.get(n, '–')}</span></li>"
                             for n, r in enumerate(rq["requirements"]))
             reqs.append(f"<details><summary>{html.escape(traj['repo'])}</summary><ol start=\"0\">{items}</ol></details>")
 
     def links(t):
         r = c.load(t)
         both = (f'<a href="boards/{t}.html">S1 board</a>' +
-                (f' · <a href="boards2/{t}.html">S1b board</a>' if two else ""))
+                (f' · <a href="boards2/{t}.html">S1b board</a>' if two else "") +
+                (f' · <a href="boards3/{t}.html">S1c board</a>' if three else ""))
         return (f"<li><strong>{html.escape(r['repo'])}</strong> <span class=\"quiet\">({'resolved' if r['resolved'] else 'unresolved'}, "
                 f"{len(r['turns'])} turns)</span><br>{both}</li>")
     review = "".join(links(t) for t in picks)
@@ -131,18 +140,19 @@ def main() -> None:
     <p>Ten real agent sessions from SWE-rebench (OpenHands, CC-BY-4.0), each drawn twice by
     <code>deepseek-v4.1-flash</code>. <strong>S1</strong>: the scribe read the raw session one turn at a time.
     <strong>S1b</strong>: the writer read the per-turn notes every five turns and cites them.
+    <strong>S1c</strong>: S1b with checked note strings, one retry for rejected cards, and a dedicated intent call.
     Add <code>#final</code> to a board's address for the finished board without animation.</p>
   </section>
   <section class="review">
-    <h2>Your review: three sessions, two boards each</h2>
-    <p>For each board: <strong>would you keep this as the record of the session?</strong>
-    Yes, with fixes, or no, plus one line on why. Then: which of the two do you prefer?</p>
+    <h2>Your review: three sessions</h2>
+    <p>For each session's S1c board, the current best: <strong>would you keep this as the record of the session?</strong>
+    Yes, with fixes, or no, plus one line on why. Then compare it with the S1 board: which do you prefer?</p>
     <ol>{review}</ol>
   </section>
   <section>
     <h2>All sessions</h2>
     <div class="scroll"><table>
-      <thead><tr><th>Session</th><th>Outcome</th><th>Turns</th><th>S1 (raw turns)</th><th>S1b (from notes)</th></tr></thead>
+      <thead><tr><th>Session</th><th>Outcome</th><th>Turns</th><th>S1 (raw turns)</th><th>S1b (from notes)</th><th>S1c (with fixes)</th></tr></thead>
       <tbody>{''.join(rows)}</tbody>
     </table></div>
   </section>
