@@ -196,8 +196,8 @@ Haiku-class scribe keeps enough exact detail (S0).
 - Checking strings in code takes verbatim misses from 4.3 % to 0 %; retries take dropped operations
   from 12 % to 4 %; a dedicated intent call takes coverage from 75 % to 88 %. All three belong in
   the product scribe.
-- Claim support stays at 84 % (0 % unsupported), below the 90 % bar, and "You should know" was only
-  partly re-measured.
+- Claim support stays at 84 % (0 % unsupported), below the 90 % bar. "You should know" holds: 93 %
+  precise and 5 of 5 failed runs flagged, on 9 of 10 sessions.
 
 ## How to reverse
 

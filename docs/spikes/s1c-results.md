@@ -6,7 +6,7 @@ fixes named in `s1b-results.md` to the two-stage scribe, on the same 10 sessions
 
 **Verdict: S1c does not pass as planned, and it is the best board so far.** Exact strings are solved.
 Claim support (84 %) is the one real miss. Intent (88 %) and valid marks (94.6 %) fall just short.
-The "You should know" measures are only partly re-measured, and the human review is still open.
+"You should know" holds up on 9 of the 10 sessions. The human review is still open.
 
 ## The fixes
 
@@ -23,14 +23,15 @@ The "You should know" measures are only partly re-measured, and the human review
 | 1 | Verbatim not found in the session | 4.3 % | **0 % (0 / 1,352)** | ≤ 2 % | yes |
 | 2 | Claim support | 83.6 %, 0 % unsupported | 84.1 %, 0 % unsupported | ≥ 90 %, ≤ 3 % | no |
 | 3 | Intent coverage (same strict lists) | 75.0 % | **88.3 %** (95 % with partial) | ≥ 90 % | no |
-| 4 | "You should know" precision | 90.0 % | 83.3 % (5 / 6, 2 sessions judged) | ≥ 70 % | yes, partial sample |
-| 5 | Flags the problem on failed runs | 5 of 5 | 2 of 2 judged | ≥ 3 of 5 | not measured in full |
+| 4 | "You should know" precision | 90.0 % | 92.6 % (25 / 27, 9 sessions judged) | ≥ 70 % | yes |
+| 5 | Flags the problem on failed runs | 5 of 5, 0 false alarms | 5 of 5, 0 false alarms on 4 of 5 resolved runs | ≥ 3 of 5 | yes |
 | 6 | Step narration | 0.4 % | 0 % | ≤ 10 % | yes |
 | 7 | Valid marks / dropped operations | 85.2 % / 11.9 % | 94.6 % / **4.0 %** | ≥ 95 %, ≤ 5 % | marks no, drops yes |
 | 9 | Latency per call; card delay | 16.2 s; median 0, max 4 turns | 12.5 s; median 0, max 4 turns | p50 ≤ 15 s; ≤ 5 turns | yes |
 | – | Cards per session | 15–30 (238 in all) | 14–31 (227 in all) | 8–15 | no |
 
-Tokens: 2.88M of the 2.9M left from S1b's approved 6M.
+Tokens: 3.31M, made up of the 2.9M left from S1b's approved 6M plus about 0.4M the user approved to
+finish the judging.
 
 ## Reading
 
@@ -50,10 +51,13 @@ Tokens: 2.88M of the 2.9M left from S1b's approved 6M.
 
 ## Not measured
 
-The cap allowed "You should know" judging on only 2 of the 10 sessions (geopandas and sqlglot, both
-failed runs). The writer's notes logic did not change, but the notes it reads did, so measures 4 and 5
-are a partial sample. Three failed runs and all five resolved runs, including the false-alarm check,
-remain to be judged, at about 0.4M tokens.
+"You should know" was judged on 9 of the 10 sessions. The tenth, idaholab/MontePy (a resolved run),
+was not judged because the ledger reached the 3.3M cap first, so its 4 notes are outside measure 4
+and the false-alarm count. It is about 0.05M tokens to finish.
+
+One note in the 27 is a wrong claim that the judge marked untrue: a geopandas card reports a CRS
+misfire that later runs in the transcript contradict. That was a failed run, so it does not count
+as a false alarm under the plan's definition, but it is the kind of note a reader would be misled by.
 
 ## Notes on method
 
