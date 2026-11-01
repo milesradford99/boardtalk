@@ -104,7 +104,7 @@ real thinking, so it is a pessimistic stand-in.
   hallucination, compression, prefix property). Prompt caching works on Ark: cache reads are
   reported, so scribe cache-share numbers are meaningful.
 - **What does not transfer:** Claude-specific claims (F3 preserved thinking, Claude prices). Scribe
-  quality is measured for DeepSeek, not Haiku/Sonnet. S1 on the Claude API remains the confirmation.
+  quality is measured for DeepSeek, not Haiku/Sonnet. S2 on the Claude API remains the confirmation.
 - **Mechanics:** Ark ignores `output_config` JSON schemas, so structured output uses a forced
   single-tool call (`tool_choice: any`; `kimi-k3` rejects `{type: "tool"}`), with required keys
   validated client-side and one retry. There is no effort parameter. The plan is flat-rate, so the
